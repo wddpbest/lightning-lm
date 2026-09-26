@@ -1,4 +1,5 @@
 #include "pointcloud_preprocess.h"
+#include <cmath>
 #include <execution>
 
 #include <glog/logging.h>
@@ -13,6 +14,10 @@ void PointCloudPreprocess::Set(LidarType lid_type, double bld, int pfilt_num) {
 
 void PointCloudPreprocess::Process(const sensor_msgs::msg::PointCloud2 ::SharedPtr &msg, PointCloudType::Ptr &pcl_out) {
     switch (lidar_type_) {
+        case LidarType::AVIA:
+            LivoxHandler(msg);
+            break;
+
         case LidarType::OUST64:
             Oust64Handler(msg);
             break;
@@ -89,6 +94,47 @@ void PointCloudPreprocess::Process(const livox_ros_driver2::msg::CustomMsg::Shar
     cloud_out_.height = 1;
     cloud_out_.is_dense = false;
     *pcl_out = cloud_out_;
+}
+
+void PointCloudPreprocess::LivoxHandler(const sensor_msgs::msg::PointCloud2::SharedPtr &msg) {
+    cloud_out_.clear();
+
+    pcl::PointCloud<LivoxPoint> cloud;
+    pcl::fromROSMsg(*msg, cloud);
+    cloud_out_.reserve(cloud.size());
+
+    const double head_time = static_cast<double>(static_cast<std::int64_t>(msg->header.stamp.sec) * 1000000000 +
+                                                 msg->header.stamp.nanosec);
+
+    for (size_t i = 1; i < cloud.size(); ++i) {
+        if (i % point_filter_num_ != 0) {
+            continue;
+        }
+
+        const auto &point = cloud[i];
+        if (point.z < height_min_ || point.z > height_max_ ||
+            point.x * point.x + point.y * point.y + point.z * point.z <= blind_ * blind_) {
+            continue;
+        }
+
+        const auto &previous = cloud[i - 1];
+        if (std::abs(point.x - previous.x) <= 1e-7 && std::abs(point.y - previous.y) <= 1e-7 &&
+            std::abs(point.z - previous.z) <= 1e-7) {
+            continue;
+        }
+
+        PointType added_pt;
+        added_pt.x = point.x;
+        added_pt.y = point.y;
+        added_pt.z = point.z;
+        added_pt.intensity = point.intensity;
+        added_pt.time = (point.timestamp - head_time) / 1e6;
+        cloud_out_.points.push_back(added_pt);
+    }
+
+    cloud_out_.width = cloud_out_.size();
+    cloud_out_.height = 1;
+    cloud_out_.is_dense = false;
 }
 
 void PointCloudPreprocess::Oust64Handler(const sensor_msgs::msg::PointCloud2::SharedPtr &msg) {

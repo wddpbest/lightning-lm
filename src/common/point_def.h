@@ -11,6 +11,8 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <cstdint>
+
 /// 地图点云的一些定义
 
 /// clang-format off
@@ -35,6 +37,19 @@ struct PointRobotSense {
 POINT_CLOUD_REGISTER_POINT_STRUCT(PointRobotSense,
                                   (float, x, x)(float, y, y)(float, z, z)(float, intensity,
                                                                           intensity)(double, timestamp, timestamp))
+
+struct EIGEN_ALIGN16 LivoxPoint {
+    PCL_ADD_POINT4D
+    float intensity;
+    std::uint8_t tag;
+    std::uint8_t line;
+    double timestamp;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+POINT_CLOUD_REGISTER_POINT_STRUCT(LivoxPoint,
+                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
+                                      (std::uint8_t, tag, tag)(std::uint8_t, line, line)(double, timestamp, timestamp))
 
 namespace velodyne_ros {
 struct EIGEN_ALIGN16 Point {

@@ -65,7 +65,7 @@ class LocSystem {
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_ = nullptr;
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_ = nullptr;
-    rclcpp::Subscription<livox_ros_driver2::msg::CustomMsg>::SharedPtr livox_sub_ = nullptr;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr livox_sub_ = nullptr;
 };
 
 };  // namespace lightning
