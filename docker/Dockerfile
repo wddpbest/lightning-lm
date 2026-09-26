@@ -6,22 +6,30 @@ LABEL description="A docker for lightning-lm"
 # 环境变量
 ENV ROS_WS=/root/slam_ws 
 
-RUN printf "deb https://mirrors.ustc.edu.cn/ubuntu/ jammy main restricted universe multiverse\n\
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ jammy main restricted universe multiverse\n\
-deb https://mirrors.ustc.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse\n\
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse\n\
-deb https://mirrors.ustc.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse\n\
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse\n\
-deb https://mirrors.ustc.edu.cn/ubuntu/ jammy-security main restricted universe multiverse\n\
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ jammy-security main restricted universe multiverse\n\
-deb http://archive.canonical.com/ubuntu/ jammy partner\n\
-deb-src http://archive.canonical.com/ubuntu/ jammy partner\n" > /etc/apt/sources.list && \
-    \
-    # 现在使用新源更新
-    apt-get update && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN apt update && apt install -y \
+ARG TARGETPLATFORM
+ARG UBUNTU_MIRROR=https://mirrors.aliyun.com
+ARG ROS2_MIRROR=https://mirrors.aliyun.com/ros2/ubuntu
+RUN echo "Target platform: ${TARGETPLATFORM}" && \
+    case "${TARGETPLATFORM}" in \
+        linux/amd64) \
+            sed -i \
+                -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}/ubuntu/|g" \
+                -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}/ubuntu/|g" \
+                /etc/apt/sources.list ;; \
+        linux/arm64) \
+            sed -i "s|http://ports.ubuntu.com/ubuntu-ports/|${UBUNTU_MIRROR}/ubuntu-ports/|g" \
+                /etc/apt/sources.list ;; \
+    esac && \
+    if [ -f /etc/apt/sources.list.d/ros2.sources ]; then \
+        sed -i "s|^URIs: .*packages.ros.org/ros2/ubuntu.*|URIs: ${ROS2_MIRROR}|" \
+            /etc/apt/sources.list.d/ros2.sources; \
+    fi && \
+    if [ -f /etc/apt/sources.list.d/ros2.list ]; then \
+        sed -i -E "s|https?://packages\\.ros\\.org/ros2/ubuntu/?|${ROS2_MIRROR}|g" \
+            /etc/apt/sources.list.d/ros2.list; \
+    fi && \
+    apt update && \
+    apt install -y \
     cmake \
     make \
     g++ \
@@ -48,6 +56,8 @@ RUN apt update && apt install -y \
     ros-${ROS_DISTRO}-pcl-ros \
     ros-${ROS_DISTRO}-octomap \
     ros-${ROS_DISTRO}-pinocchio \
+    ros-${ROS_DISTRO}-cyclonedds \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     zip \
     && rm -rf /var/lib/apt/lists/*
 
@@ -83,12 +93,6 @@ RUN git clone --recurse-submodules https://github.com/stevenlovegrove/Pangolin.g
     rm -rf /tmp/Pangolin
 
 RUN ldconfig
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    ros-${ROS_DISTRO}-cyclonedds \
-    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp && \
-    rm -rf /var/lib/apt/lists/*
 
 # 创建 ROS 工作空间
 WORKDIR ${ROS_WS}
