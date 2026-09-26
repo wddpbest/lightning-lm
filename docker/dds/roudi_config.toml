@@ -1,0 +1,47 @@
+# RouDi config for CycloneDDS/iceoryx shared-memory transport.
+#
+# Usage:
+#   iox-roudi -c /path/to/roudi_config.toml
+#
+# Or install it as:
+#   /etc/iceoryx/roudi_config.toml
+#
+# The data pools below reserve roughly 512 MiB before allocator overhead.
+# Tune the large pools according to your raw image and point cloud sizes.
+
+[general]
+version = 1
+
+[[segment]]
+
+[[segment.mempool]]
+size = 128
+count = 10000
+
+[[segment.mempool]]
+size = 1024
+count = 5000
+
+[[segment.mempool]]
+size = 16384
+count = 1000
+
+[[segment.mempool]]
+size = 131072
+count = 400
+
+[[segment.mempool]]
+size = 524288
+count = 120
+
+[[segment.mempool]]
+size = 1048576
+count = 80
+
+[[segment.mempool]]
+size = 4194304
+count = 40
+
+[[segment.mempool]]
+size = 8388608
+count = 16

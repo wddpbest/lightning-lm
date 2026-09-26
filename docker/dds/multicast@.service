@@ -1,0 +1,12 @@
+[Unit]
+Description=Enable multicast on network interface %i
+ConditionPathExists=/sys/class/net/%i
+After=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ip link set %i multicast on
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

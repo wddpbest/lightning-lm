@@ -1,7 +1,21 @@
+x-host-runtime: &host-runtime
+    network_mode: host
+    ipc: host
+    pid: host
+
+x-ros2-env: &ros2-env
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
+    RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+    CYCLONEDDS_URI: /root/cyclonedds.xml
+
+x-cyclonedds-default-mount: &cyclonedds-default-mount ${CYCLONEDDS_DEFAULT_CONFIG}:/root/cyclonedds.xml:ro
+x-cyclonedds-zenoh-mount: &cyclonedds-zenoh-mount ${CYCLONEDDS_ZENOH_CONFIG}:/root/cyclonedds.xml:ro
+x-iox-roudi-mount: &iox-roudi-mount ${IOX_ROUDI_CONFIG}:/root/roudi_config.toml:ro
+
 services:
   lightning:
     image: lightning-lm:dev
-    network_mode: host
+    <<: *host-runtime
     working_dir: /root/slam_ws/src/lightning-lm
     command:
       - bash
@@ -10,8 +24,10 @@ services:
         source /root/slam_ws/install/setup.bash
         exec ros2 run lightning run_loc_online --config ./config/f400.yaml
     environment:
+      <<: *ros2-env
       DISPLAY: ":0"
       LIBGL_ALWAYS_SOFTWARE: "1"
     volumes:
       - "../../..:/root/slam_ws"
+      - *cyclonedds-default-mount
       - "/tmp/.X11-unix:/tmp/.X11-unix:ro"

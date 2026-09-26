@@ -84,6 +84,12 @@ RUN git clone --recurse-submodules https://github.com/stevenlovegrove/Pangolin.g
 
 RUN ldconfig
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ros-${ROS_DISTRO}-cyclonedds \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp && \
+    rm -rf /var/lib/apt/lists/*
+
 # 创建 ROS 工作空间
 WORKDIR ${ROS_WS}
 
