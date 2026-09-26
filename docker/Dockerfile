@@ -82,14 +82,16 @@ RUN git clone --recurse-submodules https://github.com/stevenlovegrove/Pangolin.g
     cd / && \
     rm -rf /tmp/Pangolin
 
+RUN ldconfig
+
 # 创建 ROS 工作空间
 WORKDIR ${ROS_WS}
 
-# 一键式构建命令
-RUN /bin/bash -c "mkdir -p src && \
-    source /opt/ros/${ROS_DISTRO}/setup.bash && \
-    git clone https://github.com/gaoxiang12/lightning-lm.git src/lightning-lm&& \
-    colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-    # 将source命令写入bashrc（持久化配置）
-    echo 'source /${ROS_WS}/install/setup.bash' >> ~/.bashrc && \
-    echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> ~/.bashrc"
+# # 一键式构建命令
+# RUN /bin/bash -c "mkdir -p src && \
+#     source /opt/ros/${ROS_DISTRO}/setup.bash && \
+#     git clone https://github.com/gaoxiang12/lightning-lm.git src/lightning-lm&& \
+#     colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+#     # 将source命令写入bashrc（持久化配置）
+#     echo 'source /${ROS_WS}/install/setup.bash' >> ~/.bashrc && \
+#     echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> ~/.bashrc"

@@ -1,0 +1,17 @@
+services:
+  lightning:
+    image: lightning-lm:dev
+    network_mode: host
+    working_dir: /root/slam_ws/src/lightning-lm
+    command:
+      - bash
+      - -c
+      - |
+        source /root/slam_ws/install/setup.bash
+        exec ros2 run lightning run_loc_online --config ./config/f400.yaml
+    environment:
+      DISPLAY: ":0"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+    volumes:
+      - "../../..:/root/slam_ws"
+      - "/tmp/.X11-unix:/tmp/.X11-unix:ro"
